@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "trading212": {
+      "command": "Trading212Mcp",
+      "args": [],
+      "env": {
+        "TRADING212_API_KEY": "<your-api-key>",
+        "TRADING212_API_SECRET": "<your-api-secret>",
+        "TRADING212_BASE_URL": "https://demo.trading212.com"
+      }
+    }
+  }
+}
