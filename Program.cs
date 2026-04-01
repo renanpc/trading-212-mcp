@@ -9,6 +9,8 @@ using Trading212Mcp.Tools;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseWindowsService();
+
 builder.Services
     .AddOptions<Trading212Options>()
     .Configure<IConfiguration>(
