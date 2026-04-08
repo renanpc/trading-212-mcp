@@ -12,7 +12,7 @@ env:
   PROJECT_PATH: Trading212Mcp.csproj
   APP_NAME: Trading212Mcp
   WINX64_OUTPUT: ./publish/win-x64
-  DOCKER_IMAGE: renanpc/trading212-mcp
+  DOCKER_IMAGE: renanpcf/trading212-mcp
 
 jobs:
   publish:
