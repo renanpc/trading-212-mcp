@@ -37,6 +37,7 @@ For detailed instructions, visit the [Trading 212 Help Centre](https://helpcentr
 | `TRADING212_API_SECRET` | Your Trading 212 API secret | (required) |
 | `TRADING212_BASE_URL` | API endpoint | `https://demo.trading212.com` |
 | `TRADING212_FAILURE_LOG_PATH` | Path for failure logs | `logs/trading212-api-failures.log` |
+| `HTTP_PORT` | HTTP listen port | `8080` |
 
 ### Switching Between Demo and Live
 
@@ -57,6 +58,33 @@ dotnet run
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 ```
+
+## Docker
+
+Build locally:
+
+```bash
+docker build -t renanpc/trading212-mcp:local .
+```
+
+Run the container:
+
+```bash
+docker run --rm -p 8080:8080 \
+  -e TRADING212_API_KEY=your-api-key \
+  -e TRADING212_API_SECRET=your-api-secret \
+  -e TRADING212_BASE_URL=https://demo.trading212.com \
+  -e HTTP_PORT=8080 \
+  renanpc/trading212-mcp:local
+```
+
+Container environment variables:
+
+- `TRADING212_API_KEY` is required.
+- `TRADING212_API_SECRET` is required.
+- `TRADING212_BASE_URL` is optional and defaults to `https://demo.trading212.com`.
+- `TRADING212_FAILURE_LOG_PATH` is optional.
+- `HTTP_PORT` is optional and defaults to `8080`.
 
 ## Available Tools
 

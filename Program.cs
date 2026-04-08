@@ -11,10 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseWindowsService();
 
-var configuredPort = builder.Configuration["port"];
-if (int.TryParse(configuredPort, out var httpPort) && httpPort > 0)
+if (!HasConfiguredUrls(builder.Configuration))
 {
-    builder.WebHost.UseUrls($"http://127.0.0.1:{httpPort}");
+    var httpPort = ResolvePort(builder.Configuration);
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.ListenAnyIP(httpPort);
+    });
 }
 
 builder.Services
@@ -55,3 +58,21 @@ var app = builder.Build();
 app.MapMcp();
 
 app.Run();
+
+static bool HasConfiguredUrls(IConfiguration configuration) =>
+    !string.IsNullOrWhiteSpace(configuration["urls"]) ||
+    !string.IsNullOrWhiteSpace(configuration["URLS"]) ||
+    !string.IsNullOrWhiteSpace(configuration["ASPNETCORE_URLS"]);
+
+static int ResolvePort(IConfiguration configuration)
+{
+    foreach (var key in new[] { "HTTP_PORT", "PORT", "port" })
+    {
+        if (int.TryParse(configuration[key], out var port) && port > 0 && port <= 65535)
+        {
+            return port;
+        }
+    }
+
+    return Trading212Options.DefaultPort;
+}

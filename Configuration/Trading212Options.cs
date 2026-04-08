@@ -2,6 +2,7 @@ namespace Trading212Mcp.Configuration;
 
 internal sealed class Trading212Options
 {
+    public const int DefaultPort = 8080;
     public const string ApiKeyEnvironmentVariable = "TRADING212_API_KEY";
     public const string ApiSecretEnvironmentVariable = "TRADING212_API_SECRET";
     public const string BaseUrlEnvironmentVariable = "TRADING212_BASE_URL";
