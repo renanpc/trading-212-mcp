@@ -67,6 +67,18 @@ Build locally:
 docker build -t renanpcf/trading212-mcp:local .
 ```
 
+Use the latest public image from Docker Hub:
+
+```bash
+docker pull renanpcf/trading212-mcp:latest
+docker run --rm -p 8080:8080 \
+  -e TRADING212_API_KEY=your-api-key \
+  -e TRADING212_API_SECRET=your-api-secret \
+  -e TRADING212_BASE_URL=https://demo.trading212.com \
+  -e HTTP_PORT=8080 \
+  renanpcf/trading212-mcp:latest
+```
+
 Run the container:
 
 ```bash
