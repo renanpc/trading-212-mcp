@@ -31,7 +31,7 @@
     <Property Id="MCP_SERVER_NAME" Value="trading212-mcp" />
     <Property Id="CODEX_SKILL_NAME" Value="trading212-mcp" />
 
-    <StandardDirectory Id="ProgramFiles64Folder">
+    <StandardDirectory Id="ProgramFilesFolder">
       <Directory Id="INSTALLFOLDER" Name="$(var.Name)">
         <Component Id="SvcExec"
                    Guid="C3BC3E47-C1DE-4270-9F89-2A438A63C60B"
