@@ -44,6 +44,21 @@ For detailed instructions, visit the [Trading 212 Help Centre](https://helpcentr
 - **Demo (Paper Trading)**: `TRADING212_BASE_URL=https://demo.trading212.com`
 - **Live (Real Money)**: `TRADING212_BASE_URL=https://live.trading212.com`
 
+## Disclaimer
+
+This project is provided as a developer tool for integrating Trading 212 with MCP-compatible clients. It is not investment advice, not financial advice, and not a recommendation to buy, sell, or hold any instrument.
+
+You are solely responsible for reviewing any actions taken through this server, including order placement, order cancellation, and any other account-affecting operations. Use of the live Trading 212 environment is entirely at your own risk.
+
+Before using this project with a real account:
+
+- test against the demo environment first
+- verify all inputs and outputs independently
+- review every order before execution
+- understand the Trading 212 API limitations, rate limits, and account restrictions
+
+By using this software, you acknowledge that the authors and contributors are not responsible for trading losses, missed opportunities, account restrictions, service interruptions, or other damages arising from its use, misuse, or unavailability. See [DISCLAIMER.md](./DISCLAIMER.md) for the full repository disclaimer.
+
 ## Running the Server
 
 ### Build and Run
