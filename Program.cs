@@ -11,6 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseWindowsService();
 
+var configuredPort = builder.Configuration["port"];
+if (int.TryParse(configuredPort, out var httpPort) && httpPort > 0)
+{
+    builder.WebHost.UseUrls($"http://127.0.0.1:{httpPort}");
+}
+
 builder.Services
     .AddOptions<Trading212Options>()
     .Configure<IConfiguration>(

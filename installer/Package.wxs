@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?define Name = "Trading 212 MCP Server" ?>
+<?define Manufacturer = "Trading 212 MCP" ?>
+<?define UpgradeCode = "4C0D85F4-4A78-4F19-9E13-1A2878D7C4D2" ?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package
+      Name="$(var.Name)"
+      Manufacturer="$(var.Manufacturer)"
+      Version="$(var.Version)"
+      UpgradeCode="$(var.UpgradeCode)"
+      Scope="perMachine"
+      Compressed="yes">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    <Launch Condition="Privileged"
+            Message="[ProductName] must be installed from an elevated administrator session." />
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <Property Id="HTTPPORT" Value="8080" />
+    <Property Id="TRADING212_API_KEY" Secure="yes" Hidden="yes" />
+    <Property Id="TRADING212_API_SECRET" Secure="yes" Hidden="yes" />
+    <Property Id="TRADING212_BASE_URL" Value="https://demo.trading212.com" />
+    <Property Id="REGISTER_CLAUDE_CODE" Value="1" />
+    <Property Id="REGISTER_CODEX_MCP" Value="1" />
+    <Property Id="INSTALL_CODEX_SKILL" Value="1" />
+    <Property Id="MCP_SERVER_NAME" Value="trading212-mcp" />
+    <Property Id="CODEX_SKILL_NAME" Value="trading212-mcp" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="$(var.Name)">
+        <Component Id="SvcExec"
+                   Guid="C3BC3E47-C1DE-4270-9F89-2A438A63C60B"
+                   Bitness="always64">
+          <File Id="SvcExe"
+                Source="$(var.SourcePath)\Trading212Mcp.exe"
+                KeyPath="yes" />
+          <ServiceInstall Id="SvcInstall"
+                          Type="ownProcess"
+                          Name="Trading212Mcp"
+                          DisplayName="$(var.Name)"
+                          Description="Remote MCP server for Trading 212"
+                          Start="auto"
+                          ErrorControl="normal"
+                          Account="NT AUTHORITY\LocalService"
+                          Arguments="--port [HTTPPORT]" />
+          <ServiceControl Id="SvcControl"
+                          Name="Trading212Mcp"
+                          Start="install"
+                          Stop="both"
+                          Remove="uninstall"
+                          Wait="no" />
+        </Component>
+
+        <Component Id="EnvComponent"
+                   Guid="AAB0E27A-A9D2-4C9D-BDC1-EA095B021E47"
+                   Bitness="always64">
+          <CreateFolder />
+          <Environment Id="ApiKeyEnv"
+                       Name="TRADING212_API_KEY"
+                       Value="[TRADING212_API_KEY]"
+                       Action="set"
+                       Part="all"
+                       System="yes" />
+          <Environment Id="ApiSecretEnv"
+                       Name="TRADING212_API_SECRET"
+                       Value="[TRADING212_API_SECRET]"
+                       Action="set"
+                       Part="all"
+                       System="yes" />
+          <Environment Id="BaseUrlEnv"
+                       Name="TRADING212_BASE_URL"
+                       Value="[TRADING212_BASE_URL]"
+                       Action="set"
+                       Part="all"
+                       System="yes" />
+        </Component>
+
+        <Component Id="RegComponent"
+                   Guid="6C81CF18-7D4A-46A4-A845-75F3F5198BCE"
+                   Bitness="always64">
+          <RegistryValue Root="HKLM"
+                         Key="Software\Trading212\McpServer"
+                         Name="InstallPath"
+                         Type="string"
+                         Value="[INSTALLFOLDER]"
+                         KeyPath="yes" />
+          <RegistryValue Root="HKLM"
+                         Key="Software\Trading212\McpServer"
+                         Name="HttpPort"
+                         Type="string"
+                         Value="[HTTPPORT]" />
+          <RegistryValue Root="HKLM"
+                         Key="Software\Trading212\McpServer"
+                         Name="BaseUrl"
+                         Type="string"
+                         Value="[TRADING212_BASE_URL]" />
+        </Component>
+
+        <Component Id="CodexSkillFiles"
+                   Guid="A1E19E13-2170-411E-8B89-2C5C3C4604A0"
+                   Bitness="always64">
+          <File Id="CodexSkillMd"
+                Source="$(sys.SOURCEFILEDIR)codex-skill\SKILL.md"
+                Name="SKILL.md" />
+        </Component>
+
+        <Component Id="InstallerScripts"
+                   Guid="9348A759-CBBC-4599-A8B9-57C2A8B7D250"
+                   Bitness="always64">
+          <File Id="RegisterMcpClientsPs1"
+                Source="$(sys.SOURCEFILEDIR)Register-McpClients.ps1" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <Feature Id="Product"
+             Title="$(var.Name)"
+             Level="1">
+      <ComponentRef Id="SvcExec" />
+      <ComponentRef Id="EnvComponent" />
+      <ComponentRef Id="RegComponent" />
+      <ComponentRef Id="CodexSkillFiles" />
+      <ComponentRef Id="InstallerScripts" />
+    </Feature>
+
+    <SetProperty
+        Id="RegisterInstalledClients"
+        Sequence="execute"
+        Before="RegisterInstalledClients"
+        Value="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoLogo -NoProfile -ExecutionPolicy Bypass -File &quot;[#RegisterMcpClientsPs1]&quot; -ServerName &quot;[MCP_SERVER_NAME]&quot; -Port &quot;[HTTPPORT]&quot; -RegisterClaudeCode &quot;[REGISTER_CLAUDE_CODE]&quot; -RegisterCodexMcp &quot;[REGISTER_CODEX_MCP]&quot; -InstallCodexSkill &quot;[INSTALL_CODEX_SKILL]&quot; -CodexSkillName &quot;[CODEX_SKILL_NAME]&quot;" />
+
+    <CustomAction
+        Id="RegisterInstalledClients"
+        BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)"
+        DllEntry="WixQuietExec"
+        Execute="deferred"
+        Impersonate="yes"
+        Return="ignore" />
+
+    <InstallExecuteSequence>
+      <Custom Action="RegisterInstalledClients"
+              After="StartServices"
+              Condition="NOT Installed AND NOT REMOVE~=&quot;ALL&quot; AND (REGISTER_CLAUDE_CODE=1 OR REGISTER_CODEX_MCP=1 OR INSTALL_CODEX_SKILL=1)" />
+    </InstallExecuteSequence>
+
+    <UI Id="Custom_InstallDir_WithConfig">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <Property Id="ARPNOMODIFY" Value="1" />
+
+      <DialogRef Id="BrowseDlg" />
+      <DialogRef Id="DiskCostDlg" />
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="ExitDialog" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+      <DialogRef Id="WelcomeDlg" />
+      <DialogRef Id="InstallDirDlg" />
+      <DialogRef Id="VerifyReadyDlg" />
+      <DialogRef Id="MaintenanceWelcomeDlg" />
+      <DialogRef Id="MaintenanceTypeDlg" />
+
+      <Dialog Id="ConfigDlg" Width="370" Height="310" Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="340" Height="15"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="Service configuration" />
+        <Control Id="Description" Type="Text" X="20" Y="23" Width="330" Height="28"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="Choose the HTTP port, Trading 212 credentials, base URL, and optional agent integrations." />
+
+        <Control Id="PortLabel" Type="Text" X="20" Y="58" Width="110" Height="15"
+                 Text="HTTP port:" />
+        <Control Id="PortEdit" Type="Edit" X="145" Y="56" Width="95" Height="18"
+                 Property="HTTPPORT" Integer="yes" />
+
+        <Control Id="ApiKeyLabel" Type="Text" X="20" Y="84" Width="220" Height="15"
+                 Text="TRADING212_API_KEY:" />
+        <Control Id="ApiKeyEdit" Type="Edit" X="20" Y="100" Width="320" Height="18"
+                 Property="TRADING212_API_KEY"
+                 Password="yes" />
+
+        <Control Id="ApiSecretLabel" Type="Text" X="20" Y="124" Width="220" Height="15"
+                 Text="TRADING212_API_SECRET:" />
+        <Control Id="ApiSecretEdit" Type="Edit" X="20" Y="140" Width="320" Height="18"
+                 Property="TRADING212_API_SECRET"
+                 Password="yes" />
+
+        <Control Id="BaseUrlLabel" Type="Text" X="20" Y="164" Width="220" Height="15"
+                 Text="TRADING212_BASE_URL:" />
+        <Control Id="BaseUrlEdit" Type="Edit" X="20" Y="180" Width="320" Height="18"
+                 Property="TRADING212_BASE_URL" />
+
+        <Control Id="ClaudeCheckbox" Type="CheckBox" X="20" Y="206" Width="320" Height="18"
+                 Property="REGISTER_CLAUDE_CODE"
+                 CheckBoxValue="1"
+                 Text="Register this MCP server in Claude Code for the current user" />
+
+        <Control Id="CodexMcpCheckbox" Type="CheckBox" X="20" Y="226" Width="320" Height="18"
+                 Property="REGISTER_CODEX_MCP"
+                 CheckBoxValue="1"
+                 Text="Register this MCP server in Codex if the codex CLI is installed" />
+
+        <Control Id="CodexSkillCheckbox" Type="CheckBox" X="20" Y="246" Width="320" Height="18"
+                 Property="INSTALL_CODEX_SKILL"
+                 CheckBoxValue="1"
+                 Text="Install a Codex skill for Trading 212 if supported" />
+
+        <Control Id="Hint" Type="Text" X="20" Y="266" Width="330" Height="18"
+                 Transparent="yes" NoPrefix="yes"
+                 Text="The default Trading 212 endpoint is the demo environment." />
+
+        <Control Id="Back" Type="PushButton" X="180" Y="283" Width="56" Height="17"
+                 Text="!(loc.WixUIBack)" />
+        <Control Id="Next" Type="PushButton" X="236" Y="283" Width="56" Height="17"
+                 Default="yes" Text="!(loc.WixUINext)" />
+        <Control Id="Cancel" Type="PushButton" X="304" Y="283" Width="56" Height="17"
+                 Cancel="yes" Text="!(loc.WixUICancel)" />
+      </Dialog>
+
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="ConfigDlg" Condition="NOT Installed" />
+      <Publish Dialog="ConfigDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" />
+      <Publish Dialog="ConfigDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" />
+
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="ConfigDlg" Condition="NOT Installed" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="CheckTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="3" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="4" />
+
+      <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1" />
+      <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2" />
+      <Publish Dialog="BrowseDlg" Control="OK" Event="CheckTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1" />
+      <Publish Dialog="BrowseDlg" Control="OK" Event="SetTargetPath" Value="[_BrowseProperty]" Order="3" />
+      <Publish Dialog="BrowseDlg" Control="OK" Event="EndDialog" Value="Return" Order="4" />
+
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg" Order="1" Condition="NOT Installed" />
+
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2" Condition="Installed AND NOT PATCH" />
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Condition="Installed AND PATCH" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="3" Condition="Installed AND PATCH" />
+
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999" />
+    </UI>
+
+    <UIRef Id="WixUI_Common" />
+  </Package>
+</Wix>
