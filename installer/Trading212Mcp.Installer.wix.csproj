@@ -1,0 +1,21 @@
+<Project Sdk="WixToolset.Sdk/6.0.2">
+
+  <PropertyGroup>
+    <ProductName>Trading 212 MCP Server</ProductName>
+    <UpgradeCode>4C0D85F4-4A78-4F19-9E13-1A2878D7C4D2</UpgradeCode>
+    <Manufacturer>Trading 212 MCP</Manufacturer>
+    <Description>Remote MCP server for Trading 212</Description>
+    <Copyright>Copyright 2026</Copyright>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Trading212Mcp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="6.0.2" />
+    <PackageReference Include="WixToolset.Util.wixext" Version="6.0.2" />
+  </ItemGroup>
+
+</Project>
