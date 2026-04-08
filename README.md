@@ -64,7 +64,7 @@ dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 Build locally:
 
 ```bash
-docker build -t renanpc/trading212-mcp:local .
+docker build -t renanpcf/trading212-mcp:local .
 ```
 
 Run the container:
@@ -75,7 +75,7 @@ docker run --rm -p 8080:8080 \
   -e TRADING212_API_SECRET=your-api-secret \
   -e TRADING212_BASE_URL=https://demo.trading212.com \
   -e HTTP_PORT=8080 \
-  renanpc/trading212-mcp:local
+  renanpcf/trading212-mcp:local
 ```
 
 Container environment variables:
